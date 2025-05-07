@@ -100,7 +100,7 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: input,
+          question: input,
           userId: isAuthenticated ? "authenticated" : anonymousId,
           fileName: activeFile?.name,
         }),
@@ -126,7 +126,7 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
       const assistantMessage: Message = {
         id: Date.now().toString(),
         role: "assistant",
-        content: data.response,
+        content: data.answer,
       }
 
       setMessages((prev) => [...prev, assistantMessage])
