@@ -3,8 +3,16 @@ import { getGeminiResponse } from '@/lib/gemini';
 import { splitIntoChunks } from '@/lib/pdf-parser';
 import { pdfContents } from '@/lib/storage';
 
+// Add initialization check
+let isInitialized = false;
+
 export async function POST(request: NextRequest) {
   try {
+    // Set initialization flag on first request
+    if (!isInitialized) {
+      isInitialized = true;
+    }
+
     const { question, userId } = await request.json();
 
     if (!question || !userId) {
@@ -37,6 +45,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ answer });
   } catch (error) {
     console.error('Chat error:', error);
+    
+    // Handle initialization errors differently
+    if (!isInitialized) {
+      return NextResponse.json(
+        { error: 'Service initializing' },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Failed to process question' },
       { status: 500 }

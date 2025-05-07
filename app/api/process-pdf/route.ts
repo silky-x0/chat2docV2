@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parsePDF } from '@/lib/pdf-parser';
 import { pdfContents } from '@/lib/storage';
 
+// Add initialization check
+let isInitialized = false;
+
 export async function POST(request: NextRequest) {
   try {
+    // Set initialization flag on first request
+    if (!isInitialized) {
+      isInitialized = true;
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const userId = formData.get('userId') as string;
@@ -68,6 +76,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('PDF processing error:', error);
+
+    // Handle initialization errors differently
+    if (!isInitialized || (error instanceof Error && error.message.includes('PDF parsing initialization error'))) {
+      return NextResponse.json(
+        { error: 'Service initializing' },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
       { 
         error: 'Failed to process PDF',

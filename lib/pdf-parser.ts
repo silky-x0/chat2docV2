@@ -1,5 +1,18 @@
 import pdf from 'pdf-parse';
 
+// Wrap pdf-parse in a function that safely handles initialization
+const safePdfParse = async (buffer: Buffer, options = {}) => {
+  try {
+    return await pdf(buffer, options);
+  } catch (error) {
+    // Check if the error is related to test file access
+    if (error instanceof Error && error.message.includes('test/data')) {
+      throw new Error('PDF parsing initialization error');
+    }
+    throw error;
+  }
+};
+
 export async function parsePDF(buffer: Buffer): Promise<string> {
   try {
     // Ensure we have a valid buffer
@@ -7,8 +20,8 @@ export async function parsePDF(buffer: Buffer): Promise<string> {
       throw new Error('Input must be a Buffer');
     }
 
-    // Pass the buffer directly to pdf-parse
-    const data = await pdf(buffer, {
+    // Pass the buffer directly to our safe pdf-parse wrapper
+    const data = await safePdfParse(buffer, {
       // Add options to handle potential parsing issues
       max: 0, // No page limit
       version: 'v2.0.550' // Use latest version
