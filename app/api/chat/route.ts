@@ -39,10 +39,17 @@ export async function POST(request: NextRequest) {
     // chunking and context selection strategy
     const context = chunks[0];
 
-    // Get response from Gemini
-    const answer = await getGeminiResponse(question, context);
-
-    return NextResponse.json({ answer });
+    try {
+      // Get response from Gemini
+      const answer = await getGeminiResponse(question, context);
+      return NextResponse.json({ answer });
+    } catch (error) {
+      console.error('Gemini API error:', error);
+      return NextResponse.json(
+        { error: 'Failed to generate response' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error('Chat error:', error);
     
