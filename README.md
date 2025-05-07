@@ -20,6 +20,8 @@ Chat2Doc is a modern web application that allows users to chat with their docume
 - **Animations**: Framer Motion
 - **Form Handling**: React Hook Form with Zod validation
 - **Icons**: Lucide React
+- **AI Integration**: Google Gemini
+- **Storage**: Vercel KV (for serverless storage)
 
 ## Getting Started
 
@@ -28,6 +30,8 @@ Chat2Doc is a modern web application that allows users to chat with their docume
 - Node.js (Latest LTS version recommended)
 - npm or yarn
 - Auth0 account
+- Google Gemini API key
+- Vercel account (for deployment)
 
 ### Installation
 
@@ -50,6 +54,7 @@ AUTH0_CLIENT_SECRET=your-client-secret
 AUTH0_REDIRECT_URI=http://localhost:3000/api/auth/callback
 AUTH0_BASE_URL=http://localhost:3000
 NEXTAUTH_URL=http://localhost:3000
+GEMINI_API_KEY=your-gemini-api-key
 \`\`\`
 
 4. Configure Auth0:
@@ -76,6 +81,48 @@ npm run dev:https
 
 This will start the development server with HTTPS support on port 3001.
 
+## Deployment to Vercel
+
+### 1. Create a Vercel KV Database
+
+1. Install Vercel CLI and login:
+\`\`\`bash
+npm i -g vercel
+vercel login
+\`\`\`
+
+2. Create and link a KV database to your project:
+\`\`\`bash
+vercel link
+vercel kv create
+\`\`\`
+
+3. Connect the KV database to your project:
+\`\`\`bash
+vercel env pull .env.local
+\`\`\`
+
+### 2. Configure Environment Variables in Vercel
+
+When deploying to Vercel, make sure to set these environment variables:
+
+- \`AUTH0_DOMAIN\`
+- \`AUTH0_CLIENT_ID\`
+- \`AUTH0_CLIENT_SECRET\`
+- \`AUTH0_REDIRECT_URI\` (should be your production URL)
+- \`AUTH0_BASE_URL\` (should be your production URL)
+- \`GEMINI_API_KEY\`
+- \`KV_URL\` (automatically set by Vercel KV)
+- \`KV_REST_API_URL\` (automatically set by Vercel KV)
+- \`KV_REST_API_TOKEN\` (automatically set by Vercel KV)
+- \`KV_REST_API_READ_ONLY_TOKEN\` (automatically set by Vercel KV)
+
+### 3. Deploy to Vercel
+
+\`\`\`bash
+vercel
+\`\`\`
+
 ## Usage
 
 1. Sign up or log in to your account
@@ -101,6 +148,17 @@ This will start the development server with HTTPS support on port 3001.
 - Context-aware conversations
 - History tracking
 
+## Troubleshooting
+
+### PDF Processing Issues
+- Make sure the PDF is not password-protected or encrypted
+- Ensure the PDF contains selectable text (not just scanned images)
+
+### Deployment Issues
+- Verify all environment variables are set correctly in Vercel
+- Check that Vercel KV is properly configured and connected
+- Ensure your Gemini API key has proper permissions
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -115,3 +173,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Authentication by [Auth0](https://auth0.com/)
 - UI Components from [Radix UI](https://www.radix-ui.com/)
 - Icons from [Lucide](https://lucide.dev/)
+- Storage by [Vercel KV](https://vercel.com/storage/kv)
+- AI by [Google Gemini](https://deepmind.google/technologies/gemini/)

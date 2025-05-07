@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGeminiResponse } from '@/lib/gemini';
 import { splitIntoChunks } from '@/lib/pdf-parser';
-import { pdfContents } from '@/lib/storage';
+import { getPdfContent } from '@/lib/storage';
 
 // Add initialization check
 let isInitialized = false;
@@ -22,8 +22,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get PDF content from memory
-    const content = pdfContents.get(userId);
+    // Get PDF content from storage
+    const content = await getPdfContent(userId);
+    
     if (!content) {
       return NextResponse.json(
         { error: 'No PDF content found. Please upload a PDF first.' },

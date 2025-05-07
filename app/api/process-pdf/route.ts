@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parsePDF } from '@/lib/pdf-parser';
-import { pdfContents } from '@/lib/storage';
+import { storePdfContent } from '@/lib/storage';
 
 // Add initialization check
 let isInitialized = false;
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Store in memory (temporary)
-      pdfContents.set(userId, content);
+      // Store in persistent storage
+      await storePdfContent(userId, content);
 
       console.log(`Successfully processed PDF file: ${file.name}`);
 
