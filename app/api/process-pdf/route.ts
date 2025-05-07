@@ -54,26 +54,37 @@ export async function POST(request: NextRequest) {
 
     console.log(`Processing PDF file: ${file.name} (${buffer.length} bytes)`);
     
-    // Parse PDF
-    const content = await parsePDF(buffer);
-    
-    if (!content || content.trim().length === 0) {
+    try {
+      // Parse PDF with better error handling
+      const content = await parsePDF(buffer);
+      
+      if (!content || content.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'No text content could be extracted from the PDF' },
+          { status: 422 }
+        );
+      }
+
+      // Store in memory (temporary)
+      pdfContents.set(userId, content);
+
+      console.log(`Successfully processed PDF file: ${file.name}`);
+
+      return NextResponse.json({ 
+        success: true,
+        message: 'PDF processed successfully',
+        contentLength: content.length
+      });
+    } catch (parseError) {
+      console.error('PDF parsing error:', parseError);
       return NextResponse.json(
-        { error: 'No text content could be extracted from the PDF' },
+        { 
+          error: 'Failed to parse PDF content',
+          details: parseError instanceof Error ? parseError.message : 'Unknown parsing error'
+        },
         { status: 422 }
       );
     }
-
-    // Store in memory (temporary)
-    pdfContents.set(userId, content);
-
-    console.log(`Successfully processed PDF file: ${file.name}`);
-
-    return NextResponse.json({ 
-      success: true,
-      message: 'PDF processed successfully',
-      contentLength: content.length
-    });
   } catch (error) {
     console.error('PDF processing error:', error);
 

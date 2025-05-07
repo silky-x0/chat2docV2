@@ -9,10 +9,11 @@ async function getPdfParser() {
   return pdfParse;
 }
 
-// Wrap pdf-parse in a function that safely handles initialization
-const safePdfParse = async (buffer: Buffer, options = {}) => {
+// Safe wrapper for pdf-parse
+async function safePdfParse(buffer: Buffer, options = {}) {
   try {
-    return await pdfParse(buffer, options);
+    const parser = await getPdfParser();
+    return await parser(buffer, options);
   } catch (error) {
     // Check if the error is related to test file access
     if (error instanceof Error && error.message.includes('test/data')) {
@@ -20,7 +21,7 @@ const safePdfParse = async (buffer: Buffer, options = {}) => {
     }
     throw error;
   }
-};
+}
 
 export async function parsePDF(buffer: Buffer): Promise<string> {
   try {
@@ -29,11 +30,8 @@ export async function parsePDF(buffer: Buffer): Promise<string> {
       throw new Error('Input must be a Buffer');
     }
 
-    // Dynamically load pdf-parse
-    const parser = await getPdfParser();
-    
-    // Pass the buffer directly to pdf-parse
-    const data = await parser(buffer, {
+    // Pass the buffer to our safe parser
+    const data = await safePdfParse(buffer, {
       // Add options to handle potential parsing issues
       max: 0, // No page limit
       version: 'v2.0.550' // Use latest version

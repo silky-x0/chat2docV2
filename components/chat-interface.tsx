@@ -51,14 +51,21 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
       formData.append("file", file)
       formData.append("userId", isAuthenticated ? "authenticated" : anonymousId)
 
+      console.log(`Uploading file: ${file.name} (${file.size} bytes)`)
+
       const response = await fetch("/api/process-pdf", {
         method: "POST",
         body: formData,
       })
 
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error("Failed to process file")
+        console.error("PDF processing error:", result)
+        throw new Error(result.error || "Failed to process file")
       }
+
+      console.log("PDF processing result:", result)
 
       setFileProcessed(true)
       setMessages([
@@ -70,9 +77,10 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
         },
       ])
     } catch (error) {
+      console.error("PDF upload error:", error)
       toast({
         title: "Error",
-        description: "Failed to process the PDF. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to process the PDF. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -94,6 +102,8 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
     setIsLoading(true)
 
     try {
+      console.log("Sending question:", input)
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -106,7 +116,11 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
         }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
+        console.error("Chat API error:", data)
+        
         // Check if we hit the question limit
         if (response.status === 403) {
           toast({
@@ -118,10 +132,14 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
           return
         }
 
-        throw new Error("Failed to get response")
+        throw new Error(data.error || "Failed to get response")
       }
 
-      const data = await response.json()
+      console.log("Chat API response:", data)
+
+      if (!data.answer) {
+        throw new Error("No answer received from API")
+      }
 
       const assistantMessage: Message = {
         id: Date.now().toString(),
@@ -131,9 +149,10 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
 
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
+      console.error("Chat error:", error)
       toast({
         title: "Error",
-        description: "Failed to get a response. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to get a response. Please try again.",
         variant: "destructive",
       })
     } finally {
