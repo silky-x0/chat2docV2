@@ -1,30 +1,117 @@
-# Recreate Figma UI
+# Chat2Doc 📄💬
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Chat2Doc is a modern web application that allows users to chat with their documents. Upload PDFs, DOCXs, or text files and ask questions about their content using natural language.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/10akhilt-gmailcoms-projects/v0-recreate-figma-ui)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/W09UXELqYBp)
+## Features
 
-## Overview
+- 🔒 **Authentication**: Secure login system using Auth0
+- 📤 **Document Upload**: Support for PDF, DOCX, and TXT files
+- 💬 **Interactive Chat**: Natural language conversations with your documents
+- 🎨 **Modern UI**: Built with Next.js and Tailwind CSS
+- 🔄 **Real-time Processing**: Instant document processing and responses
+- 🆓 **Free Tier**: Try with up to 5 free questions for non-authenticated users
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Tech Stack
 
-## Deployment
+- **Frontend**: Next.js 15, React 18, Tailwind CSS
+- **Authentication**: Auth0
+- **UI Components**: Radix UI
+- **Styling**: Tailwind CSS with class-variance-authority
+- **Animations**: Framer Motion
+- **Form Handling**: React Hook Form with Zod validation
+- **Icons**: Lucide React
 
-Your project is live at:
+## Getting Started
 
-**[https://vercel.com/10akhilt-gmailcoms-projects/v0-recreate-figma-ui](https://vercel.com/10akhilt-gmailcoms-projects/v0-recreate-figma-ui)**
+### Prerequisites
 
-## Build your app
+- Node.js (Latest LTS version recommended)
+- npm or yarn
+- Auth0 account
 
-Continue building your app on:
+### Installation
 
-**[https://v0.dev/chat/projects/W09UXELqYBp](https://v0.dev/chat/projects/W09UXELqYBp)**
+1. Clone the repository:
+\`\`\`bash
+git clone <repository-url>
+cd chat2docV2
+\`\`\`
 
-## How It Works
+2. Install dependencies:
+\`\`\`bash
+npm install
+\`\`\`
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+3. Create a .env.local file in the root directory:
+\`\`\`env
+AUTH0_DOMAIN=your-auth0-domain.auth0.com
+AUTH0_CLIENT_ID=your-client-id
+AUTH0_CLIENT_SECRET=your-client-secret
+AUTH0_REDIRECT_URI=http://localhost:3000/api/auth/callback
+AUTH0_BASE_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3000
+\`\`\`
+
+4. Configure Auth0:
+   - Create a new application in Auth0 dashboard
+   - Set Application Type to "Regular Web Application"
+   - Configure the following URLs in Auth0 dashboard:
+     - Application Login URI: http://localhost:3000/api/auth/login
+     - Allowed Callback URLs: http://localhost:3000/api/auth/callback
+     - Allowed Logout URLs: http://localhost:3000
+     - Allowed Web Origins: http://localhost:3000
+
+5. Run the development server:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+### Development with HTTPS (Optional)
+
+For local HTTPS development:
+
+\`\`\`bash
+npm run dev:https
+\`\`\`
+
+This will start the development server with HTTPS support on port 3001.
+
+## Usage
+
+1. Sign up or log in to your account
+2. Upload your document (PDF, DOCX, or TXT)
+3. Start asking questions about your document
+4. Get AI-powered responses based on your document's content
+
+## Features in Detail
+
+### Authentication
+- Secure login/signup with Auth0
+- Guest mode with limited functionality (5 free questions)
+- Session management and persistence
+
+### Document Processing
+- Support for multiple file formats
+- Secure file upload and storage
+- Efficient document parsing and processing
+
+### Chat Interface
+- Real-time responses
+- Natural language processing
+- Context-aware conversations
+- History tracking
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- Authentication by [Auth0](https://auth0.com/)
+- UI Components from [Radix UI](https://www.radix-ui.com/)
+- Icons from [Lucide](https://lucide.dev/)
