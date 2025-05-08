@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const userId = formData.get('userId') as string;
 
+    console.log(`Received PDF upload request for userId: ${userId}`);
+
     if (!file || !userId) {
+      console.error('Missing file or userId');
       return NextResponse.json(
         { error: 'File and userId are required' },
         { status: 400 }
@@ -25,6 +28,7 @@ export async function POST(request: NextRequest) {
 
     // Validate file type
     if (!file.name.toLowerCase().endsWith('.pdf')) {
+      console.error(`Invalid file type: ${file.type}`);
       return NextResponse.json(
         { error: 'Only PDF files are supported' },
         { status: 400 }
@@ -34,6 +38,7 @@ export async function POST(request: NextRequest) {
     // Validate file size (e.g., 10MB limit)
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
     if (file.size > MAX_FILE_SIZE) {
+      console.error(`File too large: ${file.size} bytes`);
       return NextResponse.json(
         { error: 'File size exceeds 10MB limit' },
         { status: 400 }
@@ -46,29 +51,43 @@ export async function POST(request: NextRequest) {
     
     // Validate buffer
     if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+      console.error('Invalid buffer');
       return NextResponse.json(
         { error: 'Invalid file data' },
         { status: 400 }
       );
     }
 
-    console.log(`Processing PDF file: ${file.name} (${buffer.length} bytes)`);
+    console.log(`Processing PDF file: ${file.name} (${buffer.length} bytes) for userId: ${userId}`);
     
     try {
       // Parse PDF with better error handling
       const content = await parsePDF(buffer);
       
       if (!content || content.trim().length === 0) {
+        console.error('No text content extracted');
         return NextResponse.json(
           { error: 'No text content could be extracted from the PDF' },
           { status: 422 }
         );
       }
 
-      // Store in persistent storage
-      await storePdfContent(userId, content);
+      console.log(`Successfully extracted ${content.length} characters from PDF`);
 
-      console.log(`Successfully processed PDF file: ${file.name}`);
+      // Store in persistent storage
+      try {
+        await storePdfContent(userId, content);
+        console.log(`Successfully stored PDF content for userId: ${userId}`);
+      } catch (storageError) {
+        console.error('Failed to store PDF content in Firestore:', storageError);
+        return NextResponse.json(
+          { 
+            error: 'Failed to store PDF content', 
+            details: storageError instanceof Error ? storageError.message : 'Unknown storage error'
+          },
+          { status: 500 }
+        );
+      }
 
       return NextResponse.json({ 
         success: true,

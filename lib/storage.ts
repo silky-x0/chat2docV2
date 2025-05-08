@@ -11,16 +11,29 @@ const localStore: Map<string, string> = new Map();
  * @param content PDF content as text
  */
 export async function storePdfContent(userId: string, content: string): Promise<void> {
+  if (!userId) {
+    console.error('No userId provided for storing PDF content');
+    throw new Error('User ID is required');
+  }
+
+  if (!content) {
+    console.error('No content provided for storing PDF');
+    throw new Error('Content is required');
+  }
+
   try {
+    console.log(`Attempting to store ${content.length} characters for user ${userId} in Firestore`);
+    
     // Store in Firestore
-    const pdfDocRef = doc(collection(db, 'pdfContents'), userId);
+    const pdfDocRef = doc(db, 'pdfContents', userId);
     await setDoc(pdfDocRef, {
       content,
       updatedAt: new Date().toISOString(),
     });
-    console.log(`Stored PDF content for user ${userId} in Firestore`);
+    
+    console.log(`Successfully stored PDF content for user ${userId} in Firestore`);
   } catch (error) {
-    console.error('Error storing PDF content in Firestore:', error);
+    console.error(`Error storing PDF content in Firestore for user ${userId}:`, error);
     // Fallback to in-memory store
     localStore.set(userId, content);
     console.log(`Stored PDF content for user ${userId} in memory (fallback)`);
@@ -33,21 +46,43 @@ export async function storePdfContent(userId: string, content: string): Promise<
  * @returns PDF content as text, or null if not found
  */
 export async function getPdfContent(userId: string): Promise<string | null> {
+  if (!userId) {
+    console.error('No userId provided for retrieving PDF content');
+    throw new Error('User ID is required');
+  }
+
   try {
+    console.log(`Attempting to retrieve PDF content for user ${userId} from Firestore`);
+    
     // Get from Firestore
-    const pdfDocRef = doc(collection(db, 'pdfContents'), userId);
+    const pdfDocRef = doc(db, 'pdfContents', userId);
     const pdfDoc = await getDoc(pdfDocRef);
     
     if (pdfDoc.exists()) {
-      return pdfDoc.data().content || null;
+      const data = pdfDoc.data();
+      console.log(`Retrieved PDF content for user ${userId} from Firestore, data exists:`, !!data);
+      
+      if (data && data.content) {
+        console.log(`Content length: ${data.content.length} characters`);
+        return data.content;
+      } else {
+        console.log('Content field is empty or undefined');
+        return null;
+      }
+    } else {
+      console.log(`No document found for user ${userId} in Firestore`);
     }
     
     // Try fallback
-    return localStore.get(userId) || null;
+    const localContent = localStore.get(userId);
+    console.log(`Local fallback content for user ${userId} exists:`, !!localContent);
+    return localContent || null;
   } catch (error) {
-    console.error('Error retrieving PDF content from Firestore:', error);
+    console.error(`Error retrieving PDF content from Firestore for user ${userId}:`, error);
     // Fallback to in-memory store
-    return localStore.get(userId) || null;
+    const localContent = localStore.get(userId);
+    console.log(`Local fallback content for user ${userId} exists:`, !!localContent);
+    return localContent || null;
   }
 }
 
@@ -58,6 +93,11 @@ export async function getPdfContent(userId: string): Promise<string | null> {
  * @param answer AI's answer
  */
 export async function storeChatHistory(userId: string, question: string, answer: string): Promise<void> {
+  if (!userId) {
+    console.error('No userId provided for storing chat history');
+    throw new Error('User ID is required');
+  }
+
   try {
     const chatCollection = collection(db, 'chatHistory');
     const chatDoc = doc(chatCollection); // Auto-generate ID
@@ -71,7 +111,7 @@ export async function storeChatHistory(userId: string, question: string, answer:
     
     console.log(`Stored chat history for user ${userId} in Firestore`);
   } catch (error) {
-    console.error('Error storing chat history in Firestore:', error);
+    console.error(`Error storing chat history in Firestore for user ${userId}:`, error);
   }
 }
 
@@ -81,6 +121,11 @@ export async function storeChatHistory(userId: string, question: string, answer:
  * @returns Array of chat history items
  */
 export async function getChatHistory(userId: string): Promise<Array<{question: string, answer: string, timestamp: string}>> {
+  if (!userId) {
+    console.error('No userId provided for retrieving chat history');
+    throw new Error('User ID is required');
+  }
+
   try {
     const chatCollection = collection(db, 'chatHistory');
     const chatDocs = await getDoc(doc(chatCollection, userId));
@@ -91,7 +136,7 @@ export async function getChatHistory(userId: string): Promise<Array<{question: s
     
     return [];
   } catch (error) {
-    console.error('Error retrieving chat history from Firestore:', error);
+    console.error(`Error retrieving chat history from Firestore for user ${userId}:`, error);
     return [];
   }
 } 

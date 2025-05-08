@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Send, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { useFirebaseAuth } from "./firebase-auth-provider"
 
 type Message = {
   id: string
@@ -36,6 +37,7 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
   const router = useRouter()
+  const { user: firebaseUser } = useFirebaseAuth()
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -49,9 +51,10 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
     try {
       const formData = new FormData()
       formData.append("file", file)
-      formData.append("userId", isAuthenticated ? "authenticated" : anonymousId)
+      formData.append("userId", isAuthenticated && firebaseUser ? firebaseUser.uid : anonymousId)
 
       console.log(`Uploading file: ${file.name} (${file.size} bytes)`)
+      console.log(`Using userId: ${isAuthenticated && firebaseUser ? firebaseUser.uid : anonymousId}`)
 
       const response = await fetch("/api/process-pdf", {
         method: "POST",
@@ -111,7 +114,7 @@ export function ChatInterface({ isAuthenticated, anonymousId }: ChatInterfacePro
         },
         body: JSON.stringify({
           question: input,
-          userId: isAuthenticated ? "authenticated" : anonymousId,
+          userId: isAuthenticated && firebaseUser ? firebaseUser.uid : anonymousId,
           fileName: activeFile?.name,
         }),
       })

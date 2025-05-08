@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only access their own documents
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // PDF content access - only the owner can read/write
+    match /pdfContents/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Chat history access 
+    match /chatHistory/{docId} {
+      // Allow create with proper user ID
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow read only for messages with matching userId
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow update/delete for admin users (optional)
+      // allow update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    // Generic user data subcollections
+    match /userData/{userId}/{documents=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Anonymous users need access too (if supporting guest mode)
+    match /pdfContents/anon_{anonId} {
+      allow read, write: if true; // Anyone can access anonymous content
+    }
+    
+    match /chatHistory/{docId} {
+      // Also allow anonymous access with anon_ prefix
+      allow read, write: if resource.data.userId.matches('^anon_.*');
+    }
+  }
+} 
