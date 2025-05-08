@@ -191,13 +191,25 @@ export async function signInWithAuth0Token(token: string): Promise<FirebaseUser 
  */
 export async function signOut(): Promise<void> {
   try {
-    // Sign out from Firebase
-    await firebaseSignOut(firebaseAuth);
+    // Safety check in case we're in a server environment
+    if (typeof window === 'undefined') {
+      console.warn('Cannot sign out in server environment');
+      return;
+    }
     
-    // Sign out from Auth0 by redirecting to the logout endpoint
-    window.location.href = '/api/auth/logout';
+    // Sign out from Firebase if available
+    if (firebaseAuth && firebaseAuth.currentUser) {
+      console.log('Signing out from Firebase');
+      await firebaseSignOut(firebaseAuth);
+    }
+
+    // Log the sign-out action
+    console.log('User signed out successfully');
+    
+    // The Auth0 logout will be handled by the Auth context, which redirects to /api/auth/logout
   } catch (error) {
     console.error('Error signing out:', error);
+    throw error; // Rethrow for handling in UI components
   }
 }
 

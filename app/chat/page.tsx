@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 import { ChatInterface } from "@/components/chat-interface"
 import { getSession } from "@/lib/auth"
 import { getUserQuestionCount } from "@/lib/user"
+import { UserProfileWrapper } from "@/components/user-profile-wrapper"
+import { LoginButtonWrapper } from "@/components/login-button-wrapper"
 
 export default async function ChatPage() {
   const session = await getSession()
@@ -29,11 +31,20 @@ export default async function ChatPage() {
             <h1 className="text-2xl font-bold">Chat2Doc</h1>
           </div>
 
-          {!isAuthenticated && (
-            <div className="text-sm text-gray-500">
-              <span className="font-medium">Guest Mode:</span> {5 - (session?.questionCount || 0)} questions remaining
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            {!isAuthenticated && (
+              <>
+                <div className="text-sm text-gray-500">
+                  <span className="font-medium">Guest Mode:</span> {5 - (session?.questionCount || 0)} questions remaining
+                </div>
+                <LoginButtonWrapper />
+              </>
+            )}
+            
+            {isAuthenticated && (
+              <UserProfileWrapper />
+            )}
+          </div>
         </div>
       </header>
 
