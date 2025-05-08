@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGeminiResponse } from '@/lib/gemini';
 import { splitIntoChunks } from '@/lib/pdf-parser';
-import { getPdfContent } from '@/lib/storage';
+import { getPdfContent, storeChatHistory } from '@/lib/storage';
 
 // Add initialization check
 let isInitialized = false;
@@ -43,6 +43,10 @@ export async function POST(request: NextRequest) {
     try {
       // Get response from Gemini
       const answer = await getGeminiResponse(question, context);
+      
+      // Store chat history
+      await storeChatHistory(userId, question, answer);
+      
       return NextResponse.json({ answer });
     } catch (error) {
       console.error('Gemini API error:', error);
