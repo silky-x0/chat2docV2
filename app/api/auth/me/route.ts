@@ -1,17 +1,31 @@
+import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
-import { getSession } from "@/lib/auth"
 
 export async function GET() {
+  const cookieStore = cookies()
+  const sessionCookie = cookieStore.get("session")
+
+  if (!sessionCookie?.value) {
+    return NextResponse.json(null)
+  }
+
   try {
-    const session = await getSession()
+    // Parse the session cookie value
+    const session = JSON.parse(decodeURIComponent(sessionCookie.value))
 
     if (!session?.user) {
-      return NextResponse.json(null, { status: 401 })
+      return NextResponse.json(null)
     }
 
-    return NextResponse.json(session.user)
+    // Return user information
+    return NextResponse.json({
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      picture: session.user.picture,
+    })
   } catch (error) {
-    console.error("Session error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error parsing session cookie:", error)
+    return NextResponse.json(null)
   }
 }

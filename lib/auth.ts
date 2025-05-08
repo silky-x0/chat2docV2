@@ -25,7 +25,8 @@ interface Session {
   questionCount?: number;
 }
 
-function validateConfig() {
+// Export validateConfig function to be used in debug endpoints
+export function validateConfig() {
   const requiredEnvVars = [
     'AUTH0_DOMAIN',
     'AUTH0_CLIENT_ID',

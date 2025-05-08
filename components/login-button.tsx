@@ -1,20 +1,34 @@
 "use client"
 
-import { LogInIcon } from "lucide-react"
+import { useState } from "react"
+import { LogInIcon, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "./auth-provider"
 
 export function LoginButton() {
-  const { login } = useAuth()
+  const { login, isLoading: authLoading } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleLogin = () => {
+    console.log("Login button clicked")
+    setIsLoading(true)
+    login()
+    // No need to reset loading as we're redirecting
+  }
 
   return (
     <Button 
-      variant="outline" 
+      variant="default" 
       size="sm" 
-      onClick={login}
-      className="flex items-center gap-2"
+      onClick={handleLogin}
+      disabled={isLoading || authLoading}
+      className="flex items-center gap-2 bg-[#00adb5] hover:bg-[#00adb5]/90"
     >
-      <LogInIcon className="h-4 w-4" />
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <LogInIcon className="h-4 w-4" />
+      )}
       <span>Login</span>
     </Button>
   )

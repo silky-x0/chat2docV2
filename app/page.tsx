@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button"
 export default function Home() {
   return (
     <div className="h-screen bg-[#eeeeee] flex flex-col">
-      <header className="container mx-auto px-4 py-4 flex justify-between items-center">
+      <header className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
         <div className="flex items-center gap-1">
           <div className="w-8 h-8 bg-[#393e46] rounded flex items-center justify-center">
-            <span><FileText size={36} className="text-[#000000]" /></span>
+            <FileText size={20} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-[#000000]">Chat2Doc</h1>
         </div>
