@@ -1,16 +1,18 @@
 # Chat2Doc 📄💬
 
-Chat2Doc is a modern web application that allows users to chat with their documents. Upload PDFs, DOCXs, or text files and ask questions about their content using natural language.
+Chat2Doc is a modern web application that allows users to chat with their PDF documents. Upload PDFs and ask questions about their content using natural language.
 
 ## Features
 
 - 🔒 **Authentication**: Secure login system using Auth0 with Firebase integration
-- 📤 **Document Upload**: Support for PDF, DOCX, and TXT files
+- 📤 **PDF Upload**: Support for PDF file uploads with validation
 - 💬 **Interactive Chat**: Natural language conversations with your documents
 - 🎨 **Modern UI**: Built with Next.js and Tailwind CSS
 - 🔄 **Real-time Processing**: Instant document processing and responses
 - 🆓 **Free Tier**: Try with up to 5 free questions for non-authenticated users
 - 🗄️ **Chat History**: Store and retrieve chat history with Firebase
+- 👤 **User Profiles**: Display user information and authentication status
+- 🔍 **Smart Chunking**: Efficient document chunking for better AI responses
 
 ## Tech Stack
 
@@ -20,16 +22,16 @@ Chat2Doc is a modern web application that allows users to chat with their docume
 - **UI Components**: Radix UI
 - **Styling**: Tailwind CSS with class-variance-authority
 - **Animations**: Framer Motion
-- **Form Handling**: React Hook Form with Zod validation
+- **PDF Processing**: Custom PDF parser
 - **Icons**: Lucide React
-- **AI Integration**: Google Gemini
+- **AI Integration**: Google Gemini API
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js (Latest LTS version recommended)
-- npm or yarn
+- npm, yarn, or bun
 - Auth0 account
 - Firebase project (for authentication, database, and storage)
 - Google Gemini API key
@@ -39,9 +41,14 @@ Chat2Doc is a modern web application that allows users to chat with their docume
 1. Create a new Firebase project at [firebase.google.com](https://firebase.google.com)
 2. Enable Authentication and choose "Email/Password" provider
 3. Enable Firestore Database
-4. Go to Project Settings > Service accounts
-5. Click "Generate new private key" and save the JSON file
-6. Create a Firebase web app in the Firebase console
+4. Create the following Firestore collections:
+   - `pdfContents`: Stores uploaded PDF content
+   - `chatHistory`: Stores user chat history
+   - `users`: Stores user information
+5. Set up Firebase security rules to protect your data (see Firestore Rules section)
+6. Go to Project Settings > Service accounts
+7. Click "Generate new private key" and save the JSON file
+8. Create a Firebase web app in the Firebase console
 
 ### Auth0 Setup
 
@@ -57,18 +64,22 @@ Chat2Doc is a modern web application that allows users to chat with their docume
 ### Installation
 
 1. Clone the repository:
-\`\`\`bash
+```bash
 git clone <repository-url>
 cd chat2docV2
-\`\`\`
+```
 
 2. Install dependencies:
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+# or
+yarn install
+# or
+bun install
+```
 
-3. Create a .env.local file in the root directory:
-\`\`\`env
+3. Create a `.env.local` file in the root directory:
+```env
 # Auth0 Configuration
 AUTH0_DOMAIN=your-auth0-domain.auth0.com
 AUTH0_CLIENT_ID=your-client-id
@@ -94,36 +105,118 @@ FIREBASE_DATABASE_URL=https://your-firebase-project-id.firebaseio.com
 
 # Gemini API
 GEMINI_API_KEY=your-gemini-api-key
-\`\`\`
+```
 
 4. Run the development server:
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+# or
+yarn dev
+# or
+bun dev
+```
 
 ### Development with HTTPS (Optional)
 
 For local HTTPS development:
 
-\`\`\`bash
+```bash
 npm run dev:https
-\`\`\`
+```
 
 This will start the development server with HTTPS support on port 3001.
 
+## Firestore Rules
+
+Here's a sample of Firestore security rules you can use to secure your data:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only access their own documents
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // PDF content access - only the owner can read/write
+    match /pdfContents/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Chat history access 
+    match /chatHistory/{docId} {
+      // Allow create with proper user ID
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow read only for messages with matching userId
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Generic user data subcollections
+    match /userData/{userId}/{documents=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Anonymous users need access too (if supporting guest mode)
+    match /pdfContents/anon_{anonId} {
+      allow read, write: if true; // Anyone can access anonymous content
+    }
+    
+    match /chatHistory/{docId} {
+      // Also allow anonymous access with anon_ prefix
+      allow read, write: if resource.data.userId.matches('^anon_.*');
+    }
+  }
+}
+```
+
 ## Deployment
 
-### Setting up Environment Variables
+### Setting up Environment Variables in Vercel
 
-When deploying to Vercel or another platform, make sure to set all environment variables from `.env.local` in your hosting provider.
+When deploying to Vercel:
 
-## Usage
+1. Go to your project in the Vercel dashboard
+2. Navigate to "Settings" > "Environment Variables"
+3. Add all the variables from your `.env.local` file
+4. Make sure the `FIREBASE_PRIVATE_KEY` is properly formatted with quotes and newlines
 
-1. Sign up or log in to your account (which will use Auth0 + Firebase)
-2. Upload your document (PDF, DOCX, or TXT)
-3. Start asking questions about your document
-4. Get AI-powered responses based on your document's content
-5. View your chat history anytime
+### Private Key Formatting for Vercel
+
+If you encounter issues with the Firebase private key in Vercel, use this format:
+```
+"-----BEGIN PRIVATE KEY-----\nXXXXXXXXXXXXXXXXXX\n-----END PRIVATE KEY-----\n"
+```
+
+Make sure to include the entire key with quotes and all newline characters.
+
+## Project Structure
+
+```
+chat2docV2/
+├── app/                    # Next.js app directory
+│   ├── api/                # API routes
+│   │   ├── auth/           # Auth0 authentication endpoints
+│   │   ├── chat/           # Chat API endpoints
+│   │   └── process-pdf/    # PDF processing endpoints
+│   ├── chat/               # Chat page
+│   └── page.tsx            # Home page
+├── components/             # React components
+│   ├── ui/                 # UI components
+│   ├── auth-provider.tsx   # Auth0 authentication provider
+│   ├── chat-interface.tsx  # Chat interface component
+│   ├── file-uploader.tsx   # PDF file uploader
+│   ├── login-button.tsx    # Login button component
+│   └── logout-button.tsx   # Logout button component
+├── lib/                    # Utility functions and services
+│   ├── auth.ts             # Authentication utilities
+│   ├── firebase.ts         # Firebase client configuration
+│   ├── firebase-admin.ts   # Firebase admin configuration
+│   ├── gemini.ts           # Gemini API integration
+│   ├── pdf-parser.ts       # PDF parsing utilities
+│   └── storage.ts          # Firestore storage utilities
+└── public/                 # Static files
+```
 
 ## Features in Detail
 
@@ -132,32 +225,47 @@ When deploying to Vercel or another platform, make sure to set all environment v
 - Firebase integration for persistence
 - Guest mode with limited functionality (5 free questions)
 - Session management and persistence
+- Seamless login/logout functionality
 
 ### Document Processing
-- Support for multiple file formats
-- Secure file upload and storage in Firebase
-- Efficient document parsing and processing
+- PDF file upload with validation
+- Size and type checking
+- Secure file storage in Firebase Firestore
+- Efficient document parsing and text extraction
 
 ### Chat Interface
-- Real-time responses
-- Natural language processing
-- Context-aware conversations
+- Real-time responses from Google Gemini
+- Context-aware conversations with uploaded documents
 - History tracking with Firebase Firestore
+- User-friendly message display
+
+### User Profile
+- Display authenticated user information
+- Profile picture or initials avatar
+- Email display
+- Quick logout functionality
 
 ## Troubleshooting
 
-### Firebase Issues
+### Firebase Authentication Issues
 - Make sure your Firebase credentials are correctly set in environment variables
 - Check Firebase console for any authentication or quota issues
-- Ensure Firestore rules are properly configured
+- Ensure Firestore rules are properly configured for both authenticated and anonymous users
 
 ### PDF Processing Issues
 - Make sure the PDF is not password-protected or encrypted
 - Ensure the PDF contains selectable text (not just scanned images)
+- Check that file size is under the 10MB limit
 
 ### Deployment Issues
 - Verify all environment variables are set correctly in your hosting platform
 - Ensure Firebase service account credentials are properly formatted
+- Pay special attention to the `FIREBASE_PRIVATE_KEY` format in Vercel
+
+### Auth0 Integration Issues
+- Verify all Auth0 URLs are correctly configured
+- Check Auth0 logs for authentication errors
+- Ensure the Auth0 callback URL matches your deployment URL
 
 ## Contributing
 
