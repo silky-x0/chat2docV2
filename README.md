@@ -2,7 +2,7 @@
 
 Chat2Doc is a modern web application that allows users to chat with their PDF documents. Upload PDFs and ask questions about their content using natural language.
 
-## Features
+## Features(some dont works for now, fixing it)
 
 - 🔒 **Authentication**: Secure login system using Auth0 with Firebase integration
 - 📤 **PDF Upload**: Support for PDF file uploads with validation
