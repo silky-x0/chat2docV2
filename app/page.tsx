@@ -3,6 +3,7 @@ import Image from "next/image"
 import { FileText, MessageSquare, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LoginButtonWrapper } from "@/components/login-button-wrapper"
+import { SignupButtonWrapper } from "@/components/signup-button-wrapper"
 
 export default function Home() {
   return (
@@ -16,12 +17,7 @@ export default function Home() {
         </div>
         <div className="flex gap-4 items-center">
           <LoginButtonWrapper />
-          <Link
-            href="/api/auth/login?screen_hint=signup"
-            className="bg-white text-[#000000] px-6 py-2 rounded-full border border-[#000000] hover:bg-gray-50 transition-all"
-          >
-            Sign up
-          </Link>
+          <SignupButtonWrapper />
         </div>
       </header>
 

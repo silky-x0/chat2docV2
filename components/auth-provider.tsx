@@ -109,19 +109,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) {
       console.log("User already authenticated, redirecting to current page or chat")
       const returnPath = pathname || "/chat"
-      router.push(returnPath)
+      window.location.href = returnPath
       return
     }
     
-    // Otherwise, redirect to login endpoint
+    // Otherwise, redirect to login endpoint using direct navigation
     console.log("Navigating to login endpoint")
     const returnPath = pathname || "/chat"
-    router.push(`/api/auth/login?returnTo=${encodeURIComponent(returnPath)}`)
+    window.location.href = `/api/auth/login?returnTo=${encodeURIComponent(returnPath)}`
   }
 
   const logout = async () => {
     console.log("Logging out")
-    router.push("/api/auth/logout")
+    window.location.href = "/api/auth/logout"
   }
 
   return (

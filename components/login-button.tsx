@@ -4,12 +4,13 @@ import { useState, useEffect } from "react"
 import { LogInIcon, Loader2, UserIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "./auth-provider"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 
 export function LoginButton() {
   const { login, isLoading: authLoading, user, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   // Reset loading state if auth state changes
   useEffect(() => {
@@ -20,15 +21,17 @@ export function LoginButton() {
 
   const handleLogin = () => {
     console.log("Login button clicked")
-    setIsLoading(true)
-    login()
     
-    // If already authenticated, redirect happens in auth-provider
-    // If not, we'll wait for auth flow to complete
-    setTimeout(() => {
-      // This timeout is a safety to reset loading state if no redirect happens
-      setIsLoading(false)
-    }, 2000)
+    // If already authenticated, redirect to chat
+    if (isAuthenticated && user) {
+      router.push("/chat")
+      return
+    }
+    
+    // Otherwise, proceed with login flow - use direct navigation to avoid client-side issues
+    setIsLoading(true)
+    const returnPath = pathname || "/chat"
+    window.location.href = `/api/auth/login?returnTo=${encodeURIComponent(returnPath)}`
   }
 
   // Display logged in state if authenticated
